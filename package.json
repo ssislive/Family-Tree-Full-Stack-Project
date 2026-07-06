@@ -1,20 +1,20 @@
 {
   "name": "family-tree",
   "version": "1.0.0",
-  "description": "A full-stack Family Tree web app built with HTML, CSS, Node.js, Express and a Tree (DSA) data structure backed by SQLite.",
-  "main": "server/index.js",
+  "type": "module",
+  "description": "A Netlify-hosted Family Tree web app backed by Netlify Database.",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "dev": "netlify dev --port 8889"
   },
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "@netlify/database": "^1.1.0",
+    "drizzle-orm": "^1.0.0-beta.22",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "@netlify/functions": "^5.3.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "drizzle-kit": "^1.0.0-beta.22",
+    "typescript": "^6.0.3"
   }
 }
