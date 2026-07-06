@@ -107,14 +107,65 @@ async function rebuildTree() {
 
 async function seedRootMember() {
   const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(members);
-  if (Number(count) > 0) return;
+  if (Number(count) >= 50) return;
 
-  await db.insert(members).values({
-    name: "Munshi karam Das Sahab",
-    relation: "Patriarch",
-    parentId: null,
-    isAlive: true,
-  });
+  // Clear existing if count is low or out of date
+  await db.delete(members);
+
+  const seedData = [
+    { id: 1, name: 'Munshi karam Das Sahab', relation: 'Patriarch', parentId: null, isAlive: false },
+    { id: 2, name: 'Gurudas Mal', relation: 'Son', parentId: 1, isAlive: false },
+    { id: 3, name: 'Chaj Mal', relation: 'Son', parentId: 1, isAlive: false },
+    { id: 4, name: 'Gujjar Mal', relation: 'Son', parentId: 1, isAlive: false },
+    { id: 5, name: 'Puram Mal', relation: 'Son', parentId: 1, isAlive: false },
+    { id: 6, name: 'Todra Mal', relation: 'Son', parentId: 1, isAlive: false },
+    { id: 7, name: 'Dev Chandra', relation: 'Son', parentId: 5, isAlive: false },
+    { id: 8, name: 'Dev Rai', relation: 'Son', parentId: 5, isAlive: false },
+    { id: 9, name: 'Kharag Rai', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 10, name: 'Tilak Ram', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 11, name: 'Dileep Ram', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 12, name: 'Hriday Ram', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 13, name: 'Chandra Sen', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 14, name: 'Deveki Nandan', relation: 'Son', parentId: 8, isAlive: false },
+    { id: 15, name: 'Hansaman', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 17, name: 'Chitra Sen', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 18, name: 'Jogha Ram', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 19, name: 'Chhatrapat', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 20, name: 'Govind Ray', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 21, name: 'Nand Lal', relation: 'Son', parentId: 9, isAlive: false },
+    { id: 22, name: 'Dheer Dhar', relation: 'Son', parentId: 20, isAlive: false },
+    { id: 23, name: 'Meenth Ram', relation: 'Son', parentId: 20, isAlive: false },
+    { id: 24, name: 'Dati Ram', relation: 'Son', parentId: 22, isAlive: false },
+    { id: 25, name: 'Munna Lal', relation: 'Son', parentId: 22, isAlive: false },
+    { id: 26, name: 'Bhola Nath', relation: 'Son', parentId: 24, isAlive: false },
+    { id: 27, name: 'Munnu Lal', relation: 'Son', parentId: 24, isAlive: false },
+    { id: 28, name: 'Doodh Ram', relation: 'Son', parentId: 26, isAlive: false },
+    { id: 29, name: 'Madari Lal', relation: 'Son', parentId: 28, isAlive: false },
+    { id: 30, name: 'Lalta Parsad', relation: 'Son', parentId: 29, isAlive: false },
+    { id: 31, name: 'Gaya Parsad', relation: 'Son', parentId: 30, isAlive: false },
+    { id: 32, name: 'Baijnath', relation: 'Son', parentId: 30, isAlive: false },
+    { id: 33, name: 'Chandrika Sahay', relation: 'Son', parentId: 30, isAlive: false },
+    { id: 34, name: 'Shitla Sahay', relation: 'Son', parentId: 30, isAlive: false },
+    { id: 35, name: 'Majlis Ray', relation: 'Son', parentId: 34, isAlive: false },
+    { id: 36, name: 'Bachan Lal', relation: 'Son', parentId: 35, isAlive: false },
+    { id: 37, name: 'Sukhnandan Lal', relation: 'Son', parentId: 35, isAlive: false },
+    { id: 38, name: 'Sohan Lal', relation: 'Son', parentId: 35, isAlive: false },
+    { id: 39, name: 'Pramod Kumar', relation: 'Son', parentId: 36, isAlive: false },
+    { id: 40, name: 'Shiv Sahay', relation: 'Son', parentId: 37, isAlive: false },
+    { id: 41, name: 'Dinesh Kumar', relation: 'Son', parentId: 38, isAlive: true },
+    { id: 42, name: 'Suresh Kumar', relation: 'Son', parentId: 38, isAlive: true },
+    { id: 43, name: 'Ramesh Kumar', relation: 'Son', parentId: 38, isAlive: true },
+    { id: 44, name: 'Rajesh Kumar', relation: 'Son', parentId: 38, isAlive: true },
+    { id: 45, name: 'Sanjay Kumar', relation: 'Son', parentId: 40, isAlive: true },
+    { id: 46, name: 'Atul Kumar', relation: 'Son', parentId: 44, isAlive: true },
+    { id: 47, name: 'Anil Kumar', relation: 'Son', parentId: 44, isAlive: true },
+    { id: 48, name: 'Aditya Sri.', relation: 'Son', parentId: 46, isAlive: true },
+    { id: 49, name: 'Sujal Sri.', relation: 'Son', parentId: 46, isAlive: true },
+    { id: 50, name: 'Devarishi Sri.', relation: 'Son', parentId: 47, isAlive: true }
+  ];
+
+  await db.insert(members).values(seedData);
+  await db.execute(sql`SELECT setval('members_id_seq', (SELECT MAX(id) FROM members))`);
 }
 
 function requireAdmin(req: Request) {
