@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Family Tree</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-title"><span>HOUSE </span>OF LALA</div>
+  </header>
+
+  <!-- LEGEND (top-left) -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot alive"></div> Alive
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dead"></div> Non-Alive
+    </div>
+  </div>
+
+  <!-- ADMIN BUTTON (top-right) -->
+  <button class="admin-btn" onclick="openLogin()">⚙ Admin</button>
+
+  <!-- ZOOM CONTROLS (bottom-right) -->
+  <div class="zoom-controls">
+    <div class="zoom-btn" title="Zoom In">+</div>
+    <div class="zoom-btn" title="Zoom Out" style="font-size:1.4rem;">−</div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas">
+    <div id="tree-container">
+      <!-- SVG connecting lines (filled dynamically by tree.js) -->
+      <svg id="tree-svg" width="100%" height="100%"></svg>
+
+      <!-- Nodes are rendered here dynamically by tree.js -->
+      <div id="nodes-layer"></div>
+    </div><!-- /tree-container -->
+  </div><!-- /canvas -->
+
+  <!-- LOADING STATE -->
+  <div id="loading" class="loading-state">
+    <div class="loading-bg"></div>
+    <div class="loading-content">
+      <img src="logo.png" class="loading-logo" alt="Logo" />
+      <div class="loading-title">House of Lala</div>
+      <div class="loading-slogan">Connecting Generations, Celebrating Our Roots</div>
+      <div class="loading-text" id="loadingText" style="transition: opacity 0.3s ease;">Loading family tree…</div>
+      <button class="btn-add btn-enter-loading hidden" id="enterWebsiteBtn" style="opacity: 0; transition: opacity 0.3s ease;">Enter Website</button>
+    </div>
+  </div>
+
+  <!-- NAME INPUT DIALOG -->
+  <div class="overlay" id="nameDialog">
+    <div class="dialog">
+      <h2>Welcome</h2>
+      <div class="dialog-disclaimer">
+        Please enter your First Name according to your Adhaar Card
+      </div>
+
+      <label for="visitorNameInput">First Name</label>
+      <input type="text" id="visitorNameInput" placeholder="e.g. Ramesh" />
+
+      <div class="form-error" id="nameDialogError"></div>
+
+      <div class="dialog-actions">
+        <button class="btn-add" id="submitNameBtn" style="flex: 1;">Reveal Lineage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD MEMBER DIALOG -->
+  <div class="overlay" id="addDialog">
+    <div class="dialog">
+      <h2 id="addDialogTitle">Add Family Member</h2>
+
+      <label>Full Name</label>
+      <input type="text" id="memberName" placeholder="e.g. Ramesh Kumar" />
+
+      <label>Relation</label>
+      <input type="text" id="memberRelation" placeholder="e.g. Son, Daughter, Father…" />
+
+      <label>Status</label>
+      <div class="radio-group">
+        <label class="radio-option selected-alive" id="opt-alive">
+          <input type="radio" name="status" value="alive" checked />
+          <div class="radio-dot alive"></div> Alive
+        </label>
+        <label class="radio-option" id="opt-dead">
+          <input type="radio" name="status" value="dead" />
+          <div class="radio-dot dead"></div> Non-Alive
+        </label>
+      </div>
+
+      <div class="form-error" id="addError"></div>
+
+      <div class="dialog-actions">
+        <button class="btn-cancel" onclick="closeDialog('addDialog')">Cancel</button>
+        <button class="btn-add" id="submitAddBtn">Add Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN DIALOG -->
+  <div class="overlay" id="loginDialog">
+    <div class="dialog login-dialog">
+      <h2>Admin Login</h2>
+
+      <label>Password</label>
+      <input type="password" id="adminPassword" placeholder="Enter admin password" />
+
+      <div class="form-error" id="loginError"></div>
+
+      <div class="dialog-actions">
+        <button class="btn-cancel" onclick="closeDialog('loginDialog')">Cancel</button>
+        <button class="btn-add" id="submitLoginBtn">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="tree.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
