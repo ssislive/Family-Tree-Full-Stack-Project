@@ -1,5 +1,3 @@
-node_modules/
-.netlify/*
-!.netlify/results.md
-family.db
 .env
+family.db
+node_modules/
