@@ -261,14 +261,96 @@ document.getElementById('visitorNameInput').addEventListener('keydown', e => {
   }
 });
 
-// ── Skip button: close popup & show full tree ──
+// ── Skip button: smooth level-by-level full-tree reveal ──
 document.getElementById('skipNameBtn').addEventListener('click', () => {
   closeDialog('nameDialog');
-  // Expand all nodes so the full tree is visible
-  if (typeof collapsedIds !== 'undefined') collapsedIds.clear();
-  if (typeof renderTree === 'function') renderTree();
-  isAnimatingLineage = false;
+  startFullTreeAnimation();
 });
+
+/**
+ * Reveals the entire family tree level by level (BFS), with a smooth
+ * camera pan to the centre of each generation — same feel as the lineage
+ * animation but for every branch at once.
+ */
+function startFullTreeAnimation() {
+  if (!rawTreeData) return;
+
+  isAnimatingLineage = true;
+
+  // 1. Collapse everything so we start from just the root
+  collapseAll(rawTreeData);
+  renderTree();
+
+  // 2. Build a BFS level list  [ [root], [depth-1 nodes], [depth-2 nodes], … ]
+  function buildLevels(root) {
+    const levels = [];
+    let queue = [root];
+    while (queue.length) {
+      levels.push(queue.slice());
+      const next = [];
+      for (const n of queue) {
+        if (n.children && n.children.length) next.push(...n.children);
+      }
+      queue = next;
+    }
+    return levels;
+  }
+
+  const levels = buildLevels(rawTreeData);
+
+  // 3. Helper: average x-coordinate of a set of nodes (after layout)
+  function averageX(nodes) {
+    let sum = 0, count = 0;
+    for (const n of nodes) {
+      const coords = getNodeCoordinates(n.id);
+      if (coords) { sum += coords.x; count++; }
+    }
+    return count ? sum / count : window.innerWidth / 2;
+  }
+
+  function averageY(nodes) {
+    let sum = 0, count = 0;
+    for (const n of nodes) {
+      const coords = getNodeCoordinates(n.id);
+      if (coords) { sum += coords.y; count++; }
+    }
+    return count ? sum / count : window.innerHeight / 2;
+  }
+
+  // 4. Step through levels one at a time
+  let levelIndex = 0;
+
+  function revealNextLevel() {
+    if (levelIndex >= levels.length) {
+      // All done — unlock controls
+      setTimeout(() => { isAnimatingLineage = false; }, 600);
+      return;
+    }
+
+    const currentLevel = levels[levelIndex];
+
+    // Pan to the centre of the current level
+    const cx = averageX(currentLevel);
+    const cy = averageY(currentLevel);
+    centerOnNodeCoordinates(cx, cy, '0.9s');
+
+    setTimeout(() => {
+      // Expand every node in this level (reveal their children)
+      for (const n of currentLevel) {
+        collapsedIds.delete(n.id);
+      }
+      renderTree();
+
+      levelIndex++;
+      // Wait for the expand animation to settle before moving on
+      setTimeout(revealNextLevel, 700);
+    }, 950);
+  }
+
+  // Kick off after a short pause so the collapse renders first
+  setTimeout(revealNextLevel, 400);
+}
+
 
 // ── Lineage Animation Logic ──
 
