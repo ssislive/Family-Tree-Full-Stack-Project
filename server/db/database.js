@@ -7,7 +7,9 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 // DB file will be created at project-root/family.db
-const dbPath = path.join(__dirname, '..', '..', 'family.db');
+const dbPath = process.env.NODE_ENV === 'production'
+  ? '/data/family.db'
+  : path.join(__dirname, '..', '..', 'family.db');
 const db = new Database(dbPath);
 
 // Create table if it doesn't already exist
