@@ -261,6 +261,15 @@ document.getElementById('visitorNameInput').addEventListener('keydown', e => {
   }
 });
 
+// ── Skip button: close popup & show full tree ──
+document.getElementById('skipNameBtn').addEventListener('click', () => {
+  closeDialog('nameDialog');
+  // Expand all nodes so the full tree is visible
+  if (typeof collapsedIds !== 'undefined') collapsedIds.clear();
+  if (typeof renderTree === 'function') renderTree();
+  isAnimatingLineage = false;
+});
+
 // ── Lineage Animation Logic ──
 
 function centerOnNodeCoordinates(x, y, duration = '0.8s') {
