@@ -2,3 +2,4 @@ node_modules/
 .netlify/*
 !.netlify/results.md
 family.db
+.env
