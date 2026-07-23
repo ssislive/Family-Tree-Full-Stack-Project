@@ -19,10 +19,11 @@ A premium, interactive family tree web application with cinematic animations, an
 - "Enter Website" button appears after 1.5 seconds, transitioning smoothly from the loading text.
 
 ### Visitor Name Dialog
-- On clicking "Enter Website", a dialog box opens asking the visitor to enter their **Pet Name **.
+- On clicking "Enter Website", a dialog box opens asking the visitor to enter their **Pet Name**.
 - The name is validated against the family tree database in real-time.
 - If the name **does not match** any member, an error message is shown: "Name does not exist in the family tree."
-- The dialog cannot be dismissed by clicking outside — the visitor must enter a valid name.
+- The dialog cannot be dismissed by clicking outside — the visitor must enter a valid name or click **"Skip"**.
+- **Skip Button**: Visitors can click "Skip" to bypass the name entry and directly view the complete family tree without the lineage path animation.
 
 ### Ancestral Lineage Path Animation
 - After entering a valid name, the family tree collapses and a cinematic camera animation begins.
