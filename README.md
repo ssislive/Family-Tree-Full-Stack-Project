@@ -2,6 +2,8 @@
 
 A premium, interactive family tree web application with cinematic animations, ancestral lineage path tracing, and a modern dark-themed UI.
 
+🌐 **Live Demo:** [https://houseoflala.vercel.app/](https://houseoflala.vercel.app/)
+
 ## Tech Stack
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Node.js, Express.js
