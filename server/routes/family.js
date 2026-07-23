@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────
 // routes/family.js
-// REST API for family tree members
+// REST API for family tree members (async Turso version)
 // ─────────────────────────────────────────
 
 const express = require('express');
@@ -14,8 +14,15 @@ const verifyToken = require('../middleware/auth');
 const tree = new FamilyTree();
 
 // Helper — load all rows from DB and rebuild the tree
-function rebuildTree() {
-  const rows = db.prepare('SELECT * FROM members').all();
+async function rebuildTree() {
+  const result = await db.execute('SELECT * FROM members');
+  const rows = result.rows.map(r => ({
+    id: Number(r.id),
+    name: r.name,
+    relation: r.relation,
+    parentId: r.parentId !== null ? Number(r.parentId) : null,
+    isAlive: Number(r.isAlive) === 1,
+  }));
   tree.buildFromRows(rows);
   return tree;
 }
@@ -23,78 +30,107 @@ function rebuildTree() {
 // ────────────────────────────────────────────
 // GET /api/members  → entire tree as nested JSON
 // ────────────────────────────────────────────
-router.get('/members', (req, res) => {
-  rebuildTree();
-  const json = tree.toJSON();
-  res.json(json);
+router.get('/members', async (req, res) => {
+  try {
+    await rebuildTree();
+    res.json(tree.toJSON());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not load family tree.' });
+  }
 });
 
 // ────────────────────────────────────────────
 // POST /api/members  → add a new member (ADMIN ONLY)
 // body: { name, relation, parentId, isAlive }
 // ────────────────────────────────────────────
-router.post('/members', verifyToken, (req, res) => {
+router.post('/members', verifyToken, async (req, res) => {
   const { name, relation, parentId, isAlive } = req.body;
 
   if (!name || !relation) {
     return res.status(400).json({ error: 'Name and relation are required.' });
   }
 
-  // parentId must exist if provided (except for the very first root)
-  if (parentId) {
-    const parentExists = db.prepare('SELECT id FROM members WHERE id = ?').get(parentId);
-    if (!parentExists) {
-      return res.status(400).json({ error: 'Parent member not found.' });
+  try {
+    if (parentId) {
+      const parentResult = await db.execute({
+        sql: 'SELECT id FROM members WHERE id = ?',
+        args: [parentId],
+      });
+      if (parentResult.rows.length === 0) {
+        return res.status(400).json({ error: 'Parent member not found.' });
+      }
     }
+
+    const result = await db.execute({
+      sql: 'INSERT INTO members (name, relation, parentId, isAlive) VALUES (?, ?, ?, ?)',
+      args: [name, relation, parentId || null, isAlive ? 1 : 0],
+    });
+
+    await rebuildTree();
+    res.status(201).json({ id: Number(result.lastInsertRowid), tree: tree.toJSON() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not add member.' });
   }
-
-  const stmt = db.prepare(
-    'INSERT INTO members (name, relation, parentId, isAlive) VALUES (?, ?, ?, ?)'
-  );
-  const result = stmt.run(name, relation, parentId || null, isAlive ? 1 : 0);
-
-  rebuildTree();
-  res.status(201).json({ id: result.lastInsertRowid, tree: tree.toJSON() });
 });
 
 // ────────────────────────────────────────────
 // PATCH /api/members/:id  → toggle alive status (ADMIN ONLY)
 // body: { isAlive: 0 | 1 }
 // ────────────────────────────────────────────
-router.patch('/members/:id', verifyToken, (req, res) => {
+router.patch('/members/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   const { isAlive } = req.body;
 
-  const member = db.prepare('SELECT * FROM members WHERE id = ?').get(id);
-  if (!member) {
-    return res.status(404).json({ error: 'Member not found.' });
+  try {
+    const memberResult = await db.execute({
+      sql: 'SELECT * FROM members WHERE id = ?',
+      args: [id],
+    });
+    if (memberResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Member not found.' });
+    }
+
+    await db.execute({
+      sql: 'UPDATE members SET isAlive = ? WHERE id = ?',
+      args: [isAlive ? 1 : 0, id],
+    });
+
+    await rebuildTree();
+    res.json({ success: true, tree: tree.toJSON() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not update member.' });
   }
-
-  db.prepare('UPDATE members SET isAlive = ? WHERE id = ?').run(isAlive ? 1 : 0, id);
-
-  rebuildTree();
-  res.json({ success: true, tree: tree.toJSON() });
 });
 
 // ────────────────────────────────────────────
 // DELETE /api/members/:id  → delete member + all descendants (ADMIN ONLY)
-// Uses tree.collectSubtreeIds() (DFS) to cascade-delete a whole branch
 // ────────────────────────────────────────────
-router.delete('/members/:id', verifyToken, (req, res) => {
+router.delete('/members/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
-  rebuildTree();
-  const node = tree.findById(Number(id));
-  if (!node) {
-    return res.status(404).json({ error: 'Member not found.' });
+  try {
+    await rebuildTree();
+    const node = tree.findById(Number(id));
+    if (!node) {
+      return res.status(404).json({ error: 'Member not found.' });
+    }
+
+    const idsToDelete = tree.collectSubtreeIds(node);
+
+    // Delete one by one (Turso doesn't support spread args for IN clause easily)
+    for (const delId of idsToDelete) {
+      await db.execute({ sql: 'DELETE FROM members WHERE id = ?', args: [delId] });
+    }
+
+    await rebuildTree();
+    res.json({ success: true, deletedIds: idsToDelete, tree: tree.toJSON() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not delete member.' });
   }
-
-  const idsToDelete = tree.collectSubtreeIds(node);
-  const placeholders = idsToDelete.map(() => '?').join(',');
-  db.prepare(`DELETE FROM members WHERE id IN (${placeholders})`).run(...idsToDelete);
-
-  rebuildTree();
-  res.json({ success: true, deletedIds: idsToDelete, tree: tree.toJSON() });
 });
 
 // ────────────────────────────────────────────

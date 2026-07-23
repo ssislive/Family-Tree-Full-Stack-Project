@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────
 // server/index.js
-// Express app entry point
+// Express app entry point (Vercel compatible)
 // ─────────────────────────────────────────
 
 require('dotenv').config();
@@ -29,6 +29,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`🌳 Family Tree server running at http://localhost:${PORT}`);
-});
+// Start server locally (not used by Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🌳 Family Tree server running at http://localhost:${PORT}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;

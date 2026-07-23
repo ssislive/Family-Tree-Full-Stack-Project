@@ -1,0 +1,18 @@
+{
+  "name": "family-tree",
+  "version": "1.0.0",
+  "description": "Family Tree web app with Express + LibSQL backend, deployed on Vercel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "db:init": "node db/init.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
