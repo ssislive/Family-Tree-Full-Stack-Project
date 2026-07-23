@@ -1,3 +1,4 @@
 .env
 family.db
 node_modules/
+package-lock.json
