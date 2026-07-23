@@ -5,7 +5,8 @@ A premium, interactive family tree web application with cinematic animations, an
 ## Tech Stack
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Node.js, Express.js
-- **Database:** SQLite (better-sqlite3)
+- **Database:** Turso (Edge SQLite) / LibSQL
+- **Deployment:** Vercel
 - **Auth:** JWT (admin-only add/edit)
 - **DSA:** N-ary Tree (FamilyNode + FamilyTree class)
 
@@ -18,7 +19,7 @@ A premium, interactive family tree web application with cinematic animations, an
 - "Enter Website" button appears after 1.5 seconds, transitioning smoothly from the loading text.
 
 ### Visitor Name Dialog
-- On clicking "Enter Website", a dialog box opens asking the visitor to enter their **First Name according to their Adhaar Card**.
+- On clicking "Enter Website", a dialog box opens asking the visitor to enter their **Pet Name **.
 - The name is validated against the family tree database in real-time.
 - If the name **does not match** any member, an error message is shown: "Name does not exist in the family tree."
 - The dialog cannot be dismissed by clicking outside — the visitor must enter a valid name.
@@ -38,14 +39,28 @@ A premium, interactive family tree web application with cinematic animations, an
 
 ## Setup
 
+### Local Development
+
 1. Install dependencies:
    ```
    npm install
    ```
 
-2. Edit `.env` and set your own ADMIN_PASSWORD and JWT_SECRET
+2. Set up Turso Database:
+   - Create a Turso account at [turso.tech](https://turso.tech)
+   - Create a new database
+   - Get your database URL and auth token
 
-3. Run the server:
+3. Configure environment variables in `.env`:
+   ```
+   TURSO_DATABASE_URL=libsql://your-db-url
+   TURSO_AUTH_TOKEN=your-auth-token
+   ADMIN_PASSWORD=your-secure-password
+   JWT_SECRET=your-jwt-secret
+   ```
+   
+
+4. Run the server:
    ```
    npm start
    ```
@@ -54,29 +69,47 @@ A premium, interactive family tree web application with cinematic animations, an
    npm run dev
    ```
 
-4. Open in browser:
+5. Open in browser:
+   ```
    http://localhost:3000
+   ```
 
 ## Project Structure
 
 ```
-family-tree/
+Family-Tree-Full-Stack-Project/
 ├── server/
-│   ├── index.js              Express app entry
-│   ├── db/database.js        SQLite setup + seed root member
-│   ├── models/FamilyTree.js  Tree DSA (FamilyNode + FamilyTree classes)
-│   ├── routes/family.js      REST API (GET/POST/PATCH/DELETE/login)
-│   └── middleware/auth.js    JWT verification middleware
+│   ├── index.js              Express app entry point
+│   ├── package.json          Server dependencies
+│   ├── .env                  Environment variables (keep private!)
+│   ├── .gitignore            Git ignore rules
+│   ├── db/
+│   │   ├── database.js       SQLite setup & seed root member
+│   │   ├── init.js           Database initialization
+│   │   └── family.db         SQLite database file
+│   ├── models/
+│   │   └── FamilyTree.js     Tree DSA (FamilyNode + FamilyTree classes)
+│   ├── routes/
+│   │   └── family.js         REST API (GET/POST/PATCH/DELETE/login)
+│   └── middleware/
+│       └── auth.js           JWT verification middleware
 ├── public/
 │   ├── index.html            Main HTML (loading screen, dialogs, canvas)
 │   ├── style.css             All styles (dark theme, animations, layout)
 │   ├── main.js               UI logic (dialogs, zoom/pan, lineage animation)
 │   ├── tree.js               Tree rendering (layout, nodes, connectors)
 │   ├── bg.jpeg               Loading screen background image
-│   └── logo.png              Loading screen logo
-├── family.db                 SQLite database file
-├── .env                      Environment variables
-└── package.json
+│   eployment on Vercel
+
+### Prerequisites
+- Turso database created and configured
+- Vercel account and CLI installed
+
+
+## DSA Concept Used: N-ary Tree
+
+Each family member is a `FamilyNode` with a `parent` pointer and a `children` array.
+The `FamilyTree` class builds this structure from LibSQL
 ```
 
 ## API Endpoints
